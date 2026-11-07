@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+.rink {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 138px, rgba(94,231,255,.10) 139px 141px, transparent 142px),
+    linear-gradient(rgba(94,231,255,.10), rgba(94,231,255,.10)) center / 100% 2px no-repeat;
+  mask-image: radial-gradient(ellipse at 50% 45%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 20%, transparent 75%);
+}

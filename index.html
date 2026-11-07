@@ -9,44 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-  <!-- Tailwind Play CDN: fine for a portfolio page. For production, compile with the Tailwind CLI. -->
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            void: '#070a10',
-            panel: '#0d131f',
-            card: '#131b2c',
-            line: '#1e293f',
-            edge: '#324468',
-            ink: '#f0f4fc',
-            mute: '#8696b0',
-            cyan: { DEFAULT: '#5ee7ff', soft: '#8cf0ff' },
-            heat: '#ff5a3c',
-            gold: '#ffc233',
-            lime: '#6bf28f',
-          },
-          fontFamily: {
-            display: ['"Chakra Petch"', 'system-ui', 'sans-serif'],
-            sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
-            mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
-          },
-        },
-      },
-    };
-  </script>
-  <style>
-    /* Rink markings: faint centre line + circle behind the hero */
-    .rink {
-      background:
-        radial-gradient(circle at 50% 50%, transparent 0 138px, rgba(94,231,255,.10) 139px 141px, transparent 142px),
-        linear-gradient(rgba(94,231,255,.10), rgba(94,231,255,.10)) center / 100% 2px no-repeat;
-      mask-image: radial-gradient(ellipse at 50% 45%, #000 20%, transparent 75%);
-      -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 20%, transparent 75%);
-    }
-  </style>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body class="bg-void font-sans text-[15px] leading-relaxed text-ink antialiased selection:bg-cyan selection:text-void">
 

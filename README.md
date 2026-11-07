@@ -18,6 +18,11 @@ This directory is **100% self-contained**. You can move or copy this entire `lan
 
 ## How to Deploy / Host Independently
 
+### Build the production stylesheet
+1. Run `npm install` once in this folder.
+2. Run `npm run build:css` whenever you change Tailwind classes or the design system.
+3. The generated production file is `styles.css` in the project root.
+
 ### Option A: Static Hosting (Vercel, Netlify, Cloudflare Pages)
 1. Push this folder to a new GitHub repository (e.g. `overclock-landing` or `overclock-portfolio`).
 2. Connect the repo to Vercel, Netlify, or Cloudflare Pages.
