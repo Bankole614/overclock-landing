@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>OVERCLOCK — Cyber Air Hockey in Your Browser</title>
+  <meta name="description" content="A 120Hz deterministic physics engine, predictive AI bosses, and serverless WebRTC peer-to-peer multiplayer in under 35KB." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <!-- Tailwind Play CDN: fine for a portfolio page. For production, compile with the Tailwind CLI. -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            void: '#070a10',
+            panel: '#0d131f',
+            card: '#131b2c',
+            line: '#1e293f',
+            edge: '#324468',
+            ink: '#f0f4fc',
+            mute: '#8696b0',
+            cyan: { DEFAULT: '#5ee7ff', soft: '#8cf0ff' },
+            heat: '#ff5a3c',
+            gold: '#ffc233',
+            lime: '#6bf28f',
+          },
+          fontFamily: {
+            display: ['"Chakra Petch"', 'system-ui', 'sans-serif'],
+            sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    /* Rink markings: faint centre line + circle behind the hero */
+    .rink {
+      background:
+        radial-gradient(circle at 50% 50%, transparent 0 138px, rgba(94,231,255,.10) 139px 141px, transparent 142px),
+        linear-gradient(rgba(94,231,255,.10), rgba(94,231,255,.10)) center / 100% 2px no-repeat;
+      mask-image: radial-gradient(ellipse at 50% 45%, #000 20%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 20%, transparent 75%);
+    }
+  </style>
+</head>
+<body class="bg-void font-sans text-[15px] leading-relaxed text-ink antialiased selection:bg-cyan selection:text-void">
+
+  <!-- Nav -->
+  <header class="sticky top-0 z-50 border-b border-line bg-void/85 backdrop-blur-md">
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
+      <a href="./index.html" class="flex items-center gap-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan">
+        <span class="font-display text-xl font-bold tracking-[0.14em]">OVERCLOCK</span>
+      </a>
+      <nav class="flex items-center gap-5 text-sm" aria-label="Primary">
+        <a href="#features" class="hidden text-mute transition hover:text-cyan md:inline">Features</a>
+        <a href="#architecture" class="hidden text-mute transition hover:text-cyan md:inline">Architecture</a>
+        <a href="./OVERCLOCK-Case-Study.pdf" target="_blank" rel="noreferrer noopener" class="hidden text-mute transition hover:text-cyan md:inline">Case study</a>
+        <a href="https://overclock-ochre.vercel.app/" target="_blank" rel="noreferrer noopener" class="rounded-md bg-cyan px-4 py-2 text-sm font-semibold text-void shadow-[0_0_22px_rgba(94,231,255,0.3)] transition hover:bg-cyan-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Play game</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero: the table IS the hero -->
+    <section class="relative overflow-hidden">
+      <div class="rink absolute inset-0" aria-hidden="true"></div>
+      <div class="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pb-16 pt-14 lg:grid-cols-[1fr_380px] lg:pt-20">
+        <div>
+          <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan/25 bg-cyan/10 px-3 py-1 font-mono text-xs text-cyan">
+            <span class="h-1.5 w-1.5 rounded-full bg-cyan"></span>
+            120 Hz physics · serverless WebRTC
+          </p>
+          <h1 class="font-display text-5xl font-bold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+            Beat the machine that sees every shot coming.
+          </h1>
+          <p class="mt-6 max-w-xl text-lg text-[#bac9e0]">
+            Cyber air hockey built for competitive play: console-smooth 120 FPS physics, AI bosses that predict bank shots, and zero-latency 1v1 over peer-to-peer, all in under 35 KB.
+          </p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="https://overclock-ochre.vercel.app/" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-md bg-cyan px-8 py-3.5 font-semibold text-void shadow-[0_0_26px_rgba(94,231,255,0.3)] transition hover:-translate-y-0.5 hover:bg-cyan-soft">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+              Launch game
+            </a>
+          </div>
+        </div>
+
+        <!-- Interactive sandbox -->
+        <div class="mx-auto w-full max-w-[380px]">
+          <div class="relative aspect-[4/5] overflow-hidden rounded-2xl border border-edge bg-[#05080e] shadow-[0_0_60px_-10px_rgba(94,231,255,0.25)]">
+            <canvas id="miniSandboxCanvas" class="block h-full w-full cursor-crosshair touch-none" width="400" height="500" aria-label="Interactive air hockey sandbox. Move your pointer to control the cyan mallet."></canvas>
+            <div class="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
+              <span class="rounded-full border border-cyan/30 bg-panel/85 px-3 py-1 font-mono text-[11px] text-cyan backdrop-blur">Drag or swipe to deflect the puck</span>
+            </div>
+          </div>
+          <p class="mt-3 text-center text-xs text-mute">A live slice of the engine. The full game adds parries, bosses and multiplayer.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scoreboard metrics -->
+    <section class="mx-auto max-w-6xl px-5" aria-label="Key numbers">
+      <dl class="grid overflow-hidden rounded-2xl border border-line bg-panel sm:grid-cols-2 lg:grid-cols-4">
+        <div class="border-b border-line p-6 sm:border-r lg:border-b-0">
+          <dd class="font-display text-4xl font-bold text-cyan">120 FPS</dd>
+          <dt class="mt-1 text-sm text-mute">Mobile vector refresh</dt>
+        </div>
+        <div class="border-b border-line p-6 lg:border-b-0 lg:border-r">
+          <dd class="font-display text-4xl font-bold text-cyan">120 Hz</dd>
+          <dt class="mt-1 text-sm text-mute">Deterministic physics</dt>
+        </div>
+        <div class="border-b border-line p-6 sm:border-b-0 sm:border-r">
+          <dd class="font-display text-4xl font-bold text-heat">&lt; 35 KB</dd>
+          <dt class="mt-1 text-sm text-mute">Zero-engine bundle</dt>
+        </div>
+        <div class="p-6">
+          <dd class="font-display text-4xl font-bold text-heat">$0.00</dd>
+          <dt class="mt-1 text-sm text-mute">Serverless multiplayer</dt>
+        </div>
+      </dl>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="mx-auto max-w-6xl scroll-mt-20 px-5 py-24">
+      <h2 class="max-w-2xl font-display text-4xl font-bold tracking-tight sm:text-5xl">Built from first principles, with no game framework.</h2>
+      <p class="mt-4 max-w-2xl text-lg text-mute">Every system is hand-written and tuned for speed, so the game stays fast on a phone.</p>
+
+      <div class="mt-12 grid gap-4 md:grid-cols-6">
+        <!-- Physics: wide, with timestep readout -->
+        <article class="rounded-2xl border border-line bg-panel p-7 transition hover:border-cyan/60 md:col-span-4">
+          <h3 class="font-display text-2xl font-semibold">Deterministic 120 Hz physics</h3>
+          <p class="mt-3 max-w-xl text-sm leading-relaxed text-[#9cb0cb]">
+            A decoupled fixed-step accumulator with continuous collision detection and separating-axis velocity guards keeps the puck from tunneling through walls at 2,500 px/s.
+          </p>
+          <div class="mt-6 inline-flex gap-6 rounded-lg bg-void px-4 py-3 font-mono text-sm">
+            <span><span class="text-mute">dt</span> <span class="text-cyan">0.00833 s</span></span>
+            <span><span class="text-mute">max speed</span> <span class="text-cyan">2,500 px/s</span></span>
+          </div>
+        </article>
+
+        <article class="rounded-2xl border border-line bg-panel p-7 transition hover:border-cyan/60 md:col-span-2">
+          <h3 class="font-display text-2xl font-semibold">Predictive AI</h3>
+          <p class="mt-3 text-sm leading-relaxed text-[#9cb0cb]">
+            Bosses compute multi-wall bank shots to anticipate yours, softened by human-style reaction delay and aim jitter across 4 tiers.
+          </p>
+        </article>
+
+        <article class="rounded-2xl border border-line bg-panel p-7 transition hover:border-cyan/60 md:col-span-2">
+          <h3 class="font-display text-2xl font-semibold">Serverless WebRTC</h3>
+          <p class="mt-3 text-sm leading-relaxed text-[#9cb0cb]">
+            Play 1v1 with anyone using a 4-character room code. A host-authoritative 30 Hz delta sync runs over DataChannels, with $0 hosting.
+          </p>
+        </article>
+
+        <!-- Parry: accent card -->
+        <article class="rounded-2xl border border-heat/40 bg-gradient-to-br from-heat/15 to-panel p-7 md:col-span-4">
+          <h3 class="font-display text-2xl font-semibold">Kinetic parry and Overdrive</h3>
+          <p class="mt-3 max-w-xl text-sm leading-relaxed text-[#c7b3ad]">
+            Deflect a shot inside a 150 ms window for a 1.55x velocity boost, a radial EMP shockwave and a chance at an Overdrive smash.
+          </p>
+          <div class="mt-6 flex items-center gap-3" aria-hidden="true">
+            <span class="font-mono text-xs text-mute">0 ms</span>
+            <div class="relative h-2 flex-1 overflow-hidden rounded-full bg-void">
+              <div class="absolute inset-y-0 left-0 w-[30%] rounded-full bg-heat"></div>
+            </div>
+            <span class="font-mono text-xs text-heat">150 ms parry window</span>
+          </div>
+        </article>
+
+        <article class="rounded-2xl border border-line bg-panel p-7 transition hover:border-cyan/60 md:col-span-3">
+          <h3 class="font-display text-2xl font-semibold">Zero-allocation render loop</h3>
+          <p class="mt-3 text-sm leading-relaxed text-[#9cb0cb]">
+            Batched vector grids, in-place coordinate updates and no <code class="rounded bg-void px-1.5 py-0.5 font-mono text-xs text-cyan">shadowBlur</code> passes hold 120 FPS on mobile devices.
+          </p>
+        </article>
+
+        <article class="rounded-2xl border border-line bg-panel p-7 transition hover:border-cyan/60 md:col-span-3">
+          <h3 class="font-display text-2xl font-semibold">Offline-first PWA</h3>
+          <p class="mt-3 text-sm leading-relaxed text-[#9cb0cb]">
+            Add it to your home screen and play on the subway or a flight. A service worker caches everything for fully offline play.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Case study -->
+    <section id="architecture" class="mx-auto max-w-6xl scroll-mt-20 px-5 pb-24">
+      <div class="flex flex-col items-start justify-between gap-8 rounded-3xl border border-edge bg-gradient-to-br from-card to-panel p-8 md:flex-row md:items-center md:p-12">
+        <div class="max-w-xl">
+          <p class="text-sm font-medium text-gold">Portfolio documentation</p>
+          <h2 class="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Technical systems and engineering case study</h2>
+          <p class="mt-4 text-[#a8bcd8]">
+            The math, architecture diagrams, benchmark tables and networking protocol behind OVERCLOCK, written up as a 4-page engineering case study.
+          </p>
+        </div>
+        <div class="flex w-full flex-col gap-3 md:w-60">
+          <a href="./OVERCLOCK-Case-Study.pdf" target="_blank" rel="noreferrer noopener" class="rounded-md bg-cyan px-5 py-3 text-center font-semibold text-void transition hover:bg-cyan-soft">Open case study PDF</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-line">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-5 py-10 text-sm text-mute md:flex-row">
+      <p class="font-display text-base font-semibold text-ink">OVERCLOCK <span class="font-normal text-mute">· Kinetic cyber air hockey</span></p>
+      <p>Built with TypeScript, Canvas 2D and WebRTC. 100% client-side.</p>
+      <a href="https://overclock-ochre.vercel.app/" target="_blank" rel="noreferrer noopener" class="text-cyan transition hover:text-cyan-soft">Launch game</a>
+    </div>
+  </footer>
+
+  <!-- Mini sandbox (same behavior as before, now DPR-aware with bot collision) -->
+  <script>
+    (function () {
+      const canvas = document.getElementById('miniSandboxCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let dpr = 1, w = 400, h = 500;
+      let puck, mallet, target, bot;
+
+      function reset() {
+        puck = { x: w / 2, y: h / 2, vx: 260 * dpr, vy: 340 * dpr, r: 14 * dpr };
+        mallet = { x: w / 2, y: h * 0.82, vx: 0, vy: 0, r: 24 * dpr };
+        target = { x: mallet.x, y: mallet.y };
+        bot = { x: w / 2, y: h * 0.18, vx: 0, r: 24 * dpr };
+      }
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width) return;
+        dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+        w = canvas.width; h = canvas.height;
+        reset();
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      function onMove(e) {
+        const rect = canvas.getBoundingClientRect();
+        const p = e.touches ? e.touches[0] : e;
+        target.x = (p.clientX - rect.left) * (w / rect.width);
+        target.y = Math.max(h * 0.52, Math.min(h - mallet.r - 10 * dpr, (p.clientY - rect.top) * (h / rect.height)));
+      }
+      canvas.addEventListener('mousemove', onMove);
+      canvas.addEventListener('touchmove', onMove, { passive: true });
+
+      function hit(m, mvx, mvy) {
+        const dx = puck.x - m.x, dy = puck.y - m.y;
+        const dist = Math.hypot(dx, dy), min = puck.r + m.r;
+        if (dist >= min || dist === 0) return;
+        const nx = dx / dist, ny = dy / dist;
+        const rel = (puck.vx - mvx) * nx + (puck.vy - mvy) * ny;
+        if (rel >= 0) return;
+        puck.x = m.x + nx * min; puck.y = m.y + ny * min;
+        const impulse = -1.8 * rel;
+        puck.vx += nx * impulse + mvx * 0.3;
+        puck.vy += ny * impulse + mvy * 0.3;
+        const maxV = 900 * dpr, sp = Math.hypot(puck.vx, puck.vy);
+        if (sp > maxV) { puck.vx *= maxV / sp; puck.vy *= maxV / sp; }
+      }
+
+      let last = performance.now(), visible = true;
+      new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }).observe(canvas);
+
+      function loop(t) {
+        requestAnimationFrame(loop);
+        const dt = Math.min(0.033, (t - last) / 1000); last = t;
+        if (!visible || dt <= 0) return;
+        const m = 10 * dpr;
+
+        const px = mallet.x, py = mallet.y;
+        mallet.x += (target.x - mallet.x) * 0.45;
+        mallet.y += (target.y - mallet.y) * 0.45;
+        mallet.vx = (mallet.x - px) / dt; mallet.vy = (mallet.y - py) / dt;
+
+        const bx = bot.x;
+        bot.x += (puck.x - bot.x) * 0.08;
+        bot.vx = (bot.x - bx) / dt;
+
+        puck.x += puck.vx * dt; puck.y += puck.vy * dt;
+        if (puck.x - puck.r < m) { puck.x = m + puck.r; puck.vx = Math.abs(puck.vx); }
+        if (puck.x + puck.r > w - m) { puck.x = w - m - puck.r; puck.vx = -Math.abs(puck.vx); }
+        if (puck.y - puck.r < m) { puck.y = m + puck.r; puck.vy = Math.abs(puck.vy); }
+        if (puck.y + puck.r > h - m) { puck.y = h - m - puck.r; puck.vy = -Math.abs(puck.vy); }
+
+        hit(mallet, mallet.vx, mallet.vy);
+        hit(bot, bot.vx, 0);
+
+        // keep the demo lively: ease the puck back up to a minimum speed
+        const sp = Math.hypot(puck.vx, puck.vy), minV = 260 * dpr;
+        if (sp < minV && sp > 0) { puck.vx *= minV / sp; puck.vy *= minV / sp; }
+
+        ctx.fillStyle = '#06090f'; ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = '#1b263b'; ctx.lineWidth = 2 * dpr;
+        ctx.beginPath(); ctx.moveTo(m, h / 2); ctx.lineTo(w - m, h / 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(w / 2, h / 2, 45 * dpr, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeRect(m, m, w - 2 * m, h - 2 * m);
+
+        [[bot, '#ff5a3c'], [mallet, '#5ee7ff'], [puck, '#ffffff']].forEach(function (o) {
+          ctx.fillStyle = o[1];
+          ctx.beginPath(); ctx.arc(o[0].x, o[0].y, o[0].r, 0, Math.PI * 2); ctx.fill();
+        });
+      }
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
